@@ -79,12 +79,12 @@ export default function StudentForm({ open, onOpenChange, schoolId, editing, onS
         school_id: schoolId,
       };
       if (editing) {
-        const { data, error } = await supabase.from("students").update(payload).eq("id", editing.id).select().single();
+        const { data, error } = await supabase.from("students").update(payload as any).eq("id", editing.id).select().single();
         if (error) throw error;
         onSaved(data as Student);
         toast.success("Student updated");
       } else {
-        const { data, error } = await supabase.from("students").insert(payload).select().single();
+        const { data, error } = await supabase.from("students").insert(payload as any).select().single();
         if (error) throw error;
         onSaved(data as Student);
         toast.success("Student added");
