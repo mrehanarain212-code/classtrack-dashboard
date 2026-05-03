@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CalendarCheck, GraduationCap, LogOut, Plus, Search, Users } from "lucide-react";
+import { CalendarCheck, GraduationCap, LogOut, Plus, Search, Shield, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import StudentList from "@/features/students/StudentList";
 import type { Student } from "@/features/students/types";
 
 export default function Dashboard() {
-  const { session, schoolId, loading, signOut } = useAuth();
+  const { session, schoolId, role, isAdmin, loading, signOut } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [fetching, setFetching] = useState(true);
   const [q, setQ] = useState("");
@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState<Student | null>(null);
   const [toDelete, setToDelete] = useState<Student | null>(null);
   const [todayStats, setTodayStats] = useState<{ present: number; absent: number }>({ present: 0, absent: 0 });
+  const [statsDate, setStatsDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     if (!schoolId) return;
@@ -38,15 +39,14 @@ export default function Dashboard() {
   useEffect(() => {
     if (!schoolId) return;
     let active = true;
-    const today = new Date().toISOString().slice(0, 10);
-    supabase.from("attendance").select("status").eq("date", today).then(({ data }) => {
+    supabase.from("attendance").select("status").eq("date", statsDate).then(({ data }) => {
       if (!active || !data) return;
       let p = 0, a = 0;
       data.forEach((r: any) => { if (r.status === "Present") p++; else if (r.status === "Absent") a++; });
       setTodayStats({ present: p, absent: a });
     });
     return () => { active = false; };
-  }, [schoolId, students.length]);
+  }, [schoolId, statsDate, students.length]);
 
   const classes = useMemo(() => Array.from(new Set(students.map(s => s.class))).sort(), [students]);
 
@@ -106,16 +106,32 @@ export default function Dashboard() {
           <Link to="/attendance">
             <Button variant="ghost" size="icon" aria-label="Attendance"><CalendarCheck className="h-4 w-4" /></Button>
           </Link>
+          {isAdmin && (
+            <Link to="/team">
+              <Button variant="ghost" size="icon" aria-label="Team"><Shield className="h-4 w-4" /></Button>
+            </Link>
+          )}
           <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out"><LogOut className="h-4 w-4" /></Button>
         </div>
       </header>
 
       <section className="mx-auto max-w-6xl px-4 py-5 space-y-5">
+        {role && (
+          <div className="text-xs text-muted-foreground">
+            Signed in as <span className="font-medium text-foreground capitalize">{role}</span>
+          </div>
+        )}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Stat label="Students" value={students.length} icon={<Users className="h-4 w-4" />} />
-          <Stat label="Classes" value={classes.length} />
-          <Stat label="Present today" value={todayStats.present} />
+          <Stat label="Present" value={todayStats.present} />
+          <Stat label="Absent" value={todayStats.absent} />
           <Stat label="Attendance %" value={attendancePct} suffix="%" />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground">Stats date</label>
+          <Input type="date" value={statsDate} max={new Date().toISOString().slice(0,10)}
+            onChange={e => setStatsDate(e.target.value)} className="h-9 w-44" />
         </div>
 
         <Link to="/attendance" className="block">
@@ -124,7 +140,7 @@ export default function Dashboard() {
               <CalendarCheck className="h-5 w-5 text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium">Today's attendance</div>
+              <div className="text-sm font-medium">Mark attendance</div>
               <div className="text-xs text-muted-foreground">
                 {todayStats.present} present • {todayStats.absent} absent
               </div>
@@ -143,15 +159,22 @@ export default function Dashboard() {
             <option value="">All classes</option>
             {classes.map(c => <option key={c} value={c}>Class {c}</option>)}
           </select>
-          <Button onClick={() => { setEditing(null); setFormOpen(true); }} className="tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
-            <Plus className="h-4 w-4" /> Add student
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => { setEditing(null); setFormOpen(true); }} className="tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
+              <Plus className="h-4 w-4" /> Add student
+            </Button>
+          )}
         </div>
 
         {fetching ? (
           <div className="text-center py-10 text-muted-foreground text-sm">Loading students…</div>
         ) : (
-          <StudentList students={filtered} onEdit={s => { setEditing(s); setFormOpen(true); }} onDelete={s => setToDelete(s)} />
+          <StudentList
+            students={filtered}
+            canManage={isAdmin}
+            onEdit={s => { setEditing(s); setFormOpen(true); }}
+            onDelete={s => setToDelete(s)}
+          />
         )}
       </section>
 
