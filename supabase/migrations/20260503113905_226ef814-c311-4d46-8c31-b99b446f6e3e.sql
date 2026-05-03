@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.set_student_school_id() FROM PUBLIC, anon, authenticated;
