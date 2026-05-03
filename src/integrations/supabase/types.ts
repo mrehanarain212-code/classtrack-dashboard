@@ -171,6 +171,7 @@ export type Database = {
     }
     Functions: {
       current_school_id: { Args: never; Returns: string }
+      current_student_id: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
