@@ -5,11 +5,12 @@ import type { Student } from "./types";
 
 interface Props {
   students: Student[];
+  canManage?: boolean;
   onEdit: (s: Student) => void;
   onDelete: (s: Student) => void;
 }
 
-export default function StudentList({ students, onEdit, onDelete }: Props) {
+export default function StudentList({ students, canManage = true, onEdit, onDelete }: Props) {
   if (students.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border p-10 text-center">
@@ -37,14 +38,16 @@ export default function StudentList({ students, onEdit, onDelete }: Props) {
                 {s.parent_name}{s.parent_name && s.parent_contact ? " · " : ""}{s.parent_contact}
               </div>
             )}
-            <div className="mt-3 flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 tap-44" onClick={() => onEdit(s)}>
-                <Pencil className="h-3.5 w-3.5" /> Edit
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 tap-44 text-destructive hover:text-destructive" onClick={() => onDelete(s)}>
-                <Trash2 className="h-3.5 w-3.5" /> Delete
-              </Button>
-            </div>
+            {canManage && (
+              <div className="mt-3 flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 tap-44" onClick={() => onEdit(s)}>
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 tap-44 text-destructive hover:text-destructive" onClick={() => onDelete(s)}>
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </Button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -58,7 +61,7 @@ export default function StudentList({ students, onEdit, onDelete }: Props) {
               <TableHead>Roll</TableHead>
               <TableHead>Class</TableHead>
               <TableHead>Parent</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {canManage && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -76,12 +79,14 @@ export default function StudentList({ students, onEdit, onDelete }: Props) {
                   {s.parent_name || "—"}
                   {s.parent_contact && <span className="block text-xs">{s.parent_contact}</span>}
                 </TableCell>
-                <TableCell className="text-right">
-                  <div className="inline-flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(s)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(s)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </TableCell>
+                {canManage && (
+                  <TableCell className="text-right">
+                    <div className="inline-flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => onEdit(s)}><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => onDelete(s)} className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
