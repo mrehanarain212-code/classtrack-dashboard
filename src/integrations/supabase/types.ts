@@ -95,16 +95,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          join_code: string | null
           name: string
         }
         Insert: {
           created_at?: string
           id?: string
+          join_code?: string | null
           name: string
         }
         Update: {
           created_at?: string
           id?: string
+          join_code?: string | null
           name?: string
         }
         Relationships: []
@@ -196,12 +199,20 @@ export type Database = {
     Functions: {
       current_school_id: { Args: never; Returns: string }
       current_student_id: { Args: never; Returns: string }
+      gen_join_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      school_by_code: {
+        Args: { _code: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
       }
       user_school_id: { Args: { _user_id: string }; Returns: string }
     }
