@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { GraduationCap, LogOut, Plus, Search, Users } from "lucide-react";
+import { CalendarCheck, GraduationCap, LogOut, Plus, Search, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [toDelete, setToDelete] = useState<Student | null>(null);
+  const [todayStats, setTodayStats] = useState<{ present: number; absent: number }>({ present: 0, absent: 0 });
 
   useEffect(() => {
     if (!schoolId) return;
@@ -34,7 +35,26 @@ export default function Dashboard() {
     return () => { active = false; };
   }, [schoolId]);
 
+  useEffect(() => {
+    if (!schoolId) return;
+    let active = true;
+    const today = new Date().toISOString().slice(0, 10);
+    supabase.from("attendance").select("status").eq("date", today).then(({ data }) => {
+      if (!active || !data) return;
+      let p = 0, a = 0;
+      data.forEach((r: any) => { if (r.status === "Present") p++; else if (r.status === "Absent") a++; });
+      setTodayStats({ present: p, absent: a });
+    });
+    return () => { active = false; };
+  }, [schoolId, students.length]);
+
   const classes = useMemo(() => Array.from(new Set(students.map(s => s.class))).sort(), [students]);
+
+  const attendancePct = useMemo(() => {
+    const total = todayStats.present + todayStats.absent;
+    if (!total) return 0;
+    return Math.round((todayStats.present / total) * 100);
+  }, [todayStats]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -83,16 +103,35 @@ export default function Dashboard() {
             <h1 className="text-base font-semibold leading-tight">ClassTrack</h1>
             <p className="text-xs text-muted-foreground truncate">Student management</p>
           </div>
+          <Link to="/attendance">
+            <Button variant="ghost" size="icon" aria-label="Attendance"><CalendarCheck className="h-4 w-4" /></Button>
+          </Link>
           <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out"><LogOut className="h-4 w-4" /></Button>
         </div>
       </header>
 
       <section className="mx-auto max-w-6xl px-4 py-5 space-y-5">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Stat label="Students" value={students.length} icon={<Users className="h-4 w-4" />} />
           <Stat label="Classes" value={classes.length} />
-          <Stat label="Showing" value={filtered.length} />
+          <Stat label="Present today" value={todayStats.present} />
+          <Stat label="Attendance %" value={attendancePct} suffix="%" />
         </div>
+
+        <Link to="/attendance" className="block">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-card flex items-center gap-3 hover:bg-muted/30 transition">
+            <div className="h-10 w-10 rounded-xl bg-gradient-primary grid place-items-center">
+              <CalendarCheck className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium">Today's attendance</div>
+              <div className="text-xs text-muted-foreground">
+                {todayStats.present} present • {todayStats.absent} absent
+              </div>
+            </div>
+            <div className="text-sm font-semibold">{attendancePct}%</div>
+          </div>
+        </Link>
 
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
@@ -138,9 +177,9 @@ export default function Dashboard() {
   );
 }
 
-const Stat = ({ label, value, icon }: { label: string; value: number; icon?: React.ReactNode }) => (
+const Stat = ({ label, value, icon, suffix }: { label: string; value: number; icon?: React.ReactNode; suffix?: string }) => (
   <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
     <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}{label}</div>
-    <div className="mt-1 text-2xl font-semibold tracking-tight">{value}</div>
+    <div className="mt-1 text-2xl font-semibold tracking-tight">{value}{suffix}</div>
   </div>
 );
