@@ -62,6 +62,45 @@ export type Database = {
           },
         ]
       }
+      parent_student: {
+        Row: {
+          created_at: string
+          id: string
+          parent_id: string
+          school_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_id: string
+          school_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_id?: string
+          school_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_student_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_student_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -207,6 +246,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_parent_of: { Args: { _student_id: string }; Returns: boolean }
       school_by_code: {
         Args: { _code: string }
         Returns: {
@@ -217,7 +257,7 @@ export type Database = {
       user_school_id: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "teacher"
+      app_role: "admin" | "teacher" | "parent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -345,7 +385,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "teacher"],
+      app_role: ["admin", "teacher", "parent"],
     },
   },
 } as const
