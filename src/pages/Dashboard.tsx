@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CalendarCheck, GraduationCap, LogOut, Plus, Search, Shield, Users } from "lucide-react";
+import { BarChart3, CalendarCheck, GraduationCap, LogOut, Plus, Search, Shield, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -105,6 +105,9 @@ export default function Dashboard() {
           </div>
           <Link to="/attendance">
             <Button variant="ghost" size="icon" aria-label="Attendance"><CalendarCheck className="h-4 w-4" /></Button>
+          </Link>
+          <Link to="/reports">
+            <Button variant="ghost" size="icon" aria-label="Reports"><BarChart3 className="h-4 w-4" /></Button>
           </Link>
           {isAdmin && (
             <Link to="/team">
