@@ -6,21 +6,22 @@ interface AuthCtx {
   session: Session | null;
   user: User | null;
   schoolId: string | null;
-  role: "admin" | "teacher" | null;
+  role: "admin" | "teacher" | "parent" | null;
   isAdmin: boolean;
   isTeacher: boolean;
+  isParent: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
 
 const Ctx = createContext<AuthCtx>({
-  session: null, user: null, schoolId: null, role: null, isAdmin: false, isTeacher: false, loading: true, signOut: async () => {},
+  session: null, user: null, schoolId: null, role: null, isAdmin: false, isTeacher: false, isParent: false, loading: true, signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [schoolId, setSchoolId] = useState<string | null>(null);
-  const [role, setRole] = useState<"admin" | "teacher" | null>(null);
+  const [role, setRole] = useState<"admin" | "teacher" | "parent" | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!active) return;
       setSchoolId(prof?.school_id ?? null);
       const r = (roles ?? []).map((x: any) => x.role);
-      setRole(r.includes("admin") ? "admin" : r.includes("teacher") ? "teacher" : null);
+      setRole(r.includes("admin") ? "admin" : r.includes("teacher") ? "teacher" : r.includes("parent") ? "parent" : null);
     }, 0);
     return () => { active = false; };
   }, [session]);
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   return (
     <Ctx.Provider value={{
       session, user: session?.user ?? null, schoolId, role,
-      isAdmin: role === "admin", isTeacher: role === "teacher",
+      isAdmin: role === "admin", isTeacher: role === "teacher", isParent: role === "parent",
       loading, signOut,
     }}>
       {children}

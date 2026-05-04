@@ -12,7 +12,7 @@ import StudentList from "@/features/students/StudentList";
 import type { Student } from "@/features/students/types";
 
 export default function Dashboard() {
-  const { session, schoolId, role, isAdmin, loading, signOut } = useAuth();
+  const { session, schoolId, role, isAdmin, isParent, loading, signOut } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [fetching, setFetching] = useState(true);
   const [q, setQ] = useState("");
@@ -91,6 +91,7 @@ export default function Dashboard() {
 
   if (loading) return <div className="min-h-screen grid place-items-center text-muted-foreground">Loading…</div>;
   if (!session) return <Navigate to="/auth" replace />;
+  if (isParent) return <Navigate to="/parent" replace />;
 
   return (
     <main className="min-h-screen bg-background">

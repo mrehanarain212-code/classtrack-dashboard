@@ -14,11 +14,16 @@ const signUpSchema = z.object({
   full_name: z.string().trim().min(2, "Enter your name").max(80),
   school_name: z.string().trim().max(120).optional().or(z.literal("")),
   school_code: z.string().trim().max(20).optional().or(z.literal("")),
-  mode: z.enum(["create", "join"]),
+  student_roll: z.string().trim().max(40).optional().or(z.literal("")),
+  mode: z.enum(["create", "join", "parent"]),
   email: z.string().trim().email().max(255),
   password: z.string().min(8, "Min 8 characters").max(72),
-}).refine(d => d.mode === "join" ? !!d.school_code : !!d.school_name, {
-  message: "Provide a school name or join code",
+}).refine(d => {
+  if (d.mode === "create") return !!d.school_name;
+  if (d.mode === "join") return !!d.school_code;
+  return !!d.school_code && !!d.student_roll;
+}, {
+  message: "Please fill all required fields",
   path: ["school_name"],
 });
 const signInSchema = z.object({
@@ -30,7 +35,7 @@ export default function Auth() {
   const { session, loading } = useAuth();
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
-  const [signupMode, setSignupMode] = useState<"create" | "join">("create");
+  const [signupMode, setSignupMode] = useState<"create" | "join" | "parent">("create");
 
   if (!loading && session) return <Navigate to="/" replace />;
 
@@ -48,13 +53,18 @@ export default function Auth() {
         data: {
           full_name: parsed.data.full_name,
           school_name: signupMode === "create" ? parsed.data.school_name : undefined,
-          school_code: signupMode === "join" ? parsed.data.school_code?.toUpperCase() : undefined,
+          school_code: signupMode !== "create" ? parsed.data.school_code?.toUpperCase() : undefined,
+          signup_role: signupMode === "parent" ? "parent" : undefined,
+          student_roll: signupMode === "parent" ? parsed.data.student_roll : undefined,
         },
       },
     });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(signupMode === "create" ? "School created — you're the admin" : "Joined as teacher");
+    toast.success(
+      signupMode === "create" ? "School created — you're the admin" :
+      signupMode === "parent" ? "Parent account created" : "Joined as teacher"
+    );
     nav("/", { replace: true });
   };
 
@@ -104,14 +114,18 @@ export default function Auth() {
             </TabsContent>
             <TabsContent value="signup">
               <form onSubmit={onSignUp} className="space-y-4">
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-muted">
+                <div className="grid grid-cols-3 gap-2 p-1 rounded-lg bg-muted">
                   <button type="button" onClick={() => setSignupMode("create")}
                     className={`tap-44 rounded-md text-xs font-medium ${signupMode === "create" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
-                    Create school (Admin)
+                    Admin
                   </button>
                   <button type="button" onClick={() => setSignupMode("join")}
                     className={`tap-44 rounded-md text-xs font-medium ${signupMode === "join" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
-                    Join school (Teacher)
+                    Teacher
+                  </button>
+                  <button type="button" onClick={() => setSignupMode("parent")}
+                    className={`tap-44 rounded-md text-xs font-medium ${signupMode === "parent" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
+                    Parent
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -123,12 +137,24 @@ export default function Auth() {
                     <Label htmlFor="su-school">School name</Label>
                     <Input id="su-school" name="school_name" required className="tap-44" />
                   </div>
-                ) : (
+                ) : signupMode === "join" ? (
                   <div className="space-y-2">
                     <Label htmlFor="su-code">School join code</Label>
                     <Input id="su-code" name="school_code" required className="tap-44 uppercase" placeholder="e.g. AB12CD" />
                     <p className="text-[11px] text-muted-foreground">Ask your school admin for the 6-character code.</p>
                   </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="su-code">School join code</Label>
+                      <Input id="su-code" name="school_code" required className="tap-44 uppercase" placeholder="e.g. AB12CD" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="su-roll">Your child's roll number</Label>
+                      <Input id="su-roll" name="student_roll" required className="tap-44" />
+                      <p className="text-[11px] text-muted-foreground">We'll link your account to this student.</p>
+                    </div>
+                  </>
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="su-email">Email</Label>
@@ -139,7 +165,7 @@ export default function Auth() {
                   <Input id="su-pw" name="password" type="password" required minLength={8} className="tap-44" />
                 </div>
                 <Button type="submit" disabled={busy} className="w-full tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
-                  {busy ? "Creating…" : signupMode === "create" ? "Create school" : "Join as teacher"}
+                  {busy ? "Creating…" : signupMode === "create" ? "Create school" : signupMode === "parent" ? "Create parent account" : "Join as teacher"}
                 </Button>
               </form>
             </TabsContent>
