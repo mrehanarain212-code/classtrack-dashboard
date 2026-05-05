@@ -11,6 +11,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import StudentForm from "@/features/students/StudentForm";
 import StudentList from "@/features/students/StudentList";
 import type { Student } from "@/features/students/types";
+import { StatGridSkeleton, StudentRowSkeleton } from "@/components/Skeletons";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function Dashboard() {
   const { session, schoolId, role, isAdmin, isParent, loading, signOut } = useAuth();
@@ -24,12 +26,16 @@ export default function Dashboard() {
   const [todayStats, setTodayStats] = useState<{ present: number; absent: number }>({ present: 0, absent: 0 });
   const [statsDate, setStatsDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [alerts, setAlerts] = useState<{ student_id: string; name: string; roll: string; klass: string; pct: number; absentStreak: number; totalDays: number }[]>([]);
+  const debouncedQ = useDebounce(q, 250);
 
   useEffect(() => {
     if (!schoolId) return;
     let active = true;
     setFetching(true);
-    supabase.from("students").select("*").order("created_at", { ascending: false }).then(({ data, error }) => {
+    supabase.from("students")
+      .select("id,school_id,full_name,roll_number,class,section,parent_name,parent_contact,photo_url,created_at,updated_at,date_of_birth,admission_date,address")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
       if (!active) return;
       if (error) toast.error(error.message);
       else setStudents((data ?? []) as Student[]);
@@ -87,7 +93,7 @@ export default function Dashboard() {
   }, [todayStats]);
 
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
+    const needle = debouncedQ.trim().toLowerCase();
     return students.filter(s => {
       if (classFilter && s.class !== classFilter) return false;
       if (!needle) return true;
@@ -95,7 +101,7 @@ export default function Dashboard() {
         || s.roll_number.toLowerCase().includes(needle)
         || `${s.class}-${s.section}`.toLowerCase().includes(needle);
     });
-  }, [students, q, classFilter]);
+  }, [students, debouncedQ, classFilter]);
 
   const onSaved = (s: Student) => {
     setStudents(prev => {
@@ -155,12 +161,14 @@ export default function Dashboard() {
             Signed in as <span className="font-medium text-foreground capitalize">{role}</span>
           </div>
         )}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Stat label="Students" value={students.length} icon={<Users className="h-4 w-4" />} />
-          <Stat label="Present" value={todayStats.present} />
-          <Stat label="Absent" value={todayStats.absent} />
-          <Stat label="Attendance %" value={attendancePct} suffix="%" />
-        </div>
+        {fetching ? <StatGridSkeleton /> : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Stat label="Students" value={students.length} icon={<Users className="h-4 w-4" />} />
+            <Stat label="Present" value={todayStats.present} />
+            <Stat label="Absent" value={todayStats.absent} />
+            <Stat label="Attendance %" value={attendancePct} suffix="%" />
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <label className="text-xs text-muted-foreground">Stats date</label>
@@ -234,7 +242,7 @@ export default function Dashboard() {
         </div>
 
         {fetching ? (
-          <div className="text-center py-10 text-muted-foreground text-sm">Loading students…</div>
+          <StudentRowSkeleton count={5} />
         ) : (
           <StudentList
             students={filtered}

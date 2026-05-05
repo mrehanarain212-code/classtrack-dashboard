@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import type { Student } from "@/features/students/types";
+import { TableRowsSkeleton, StatGridSkeleton } from "@/components/Skeletons";
 
 type Rec = { id: string; date: string; status: string; marked_by: string | null };
 
@@ -61,12 +62,14 @@ export default function StudentProfile() {
       </header>
 
       <section className="mx-auto max-w-4xl px-4 py-5 space-y-5">
+        {fetching ? <StatGridSkeleton /> : (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Stat label="Total days" value={stats.total} />
           <Stat label="Present" value={stats.present} tone="success" />
           <Stat label="Absent" value={stats.absent} tone="danger" />
           <Stat label="Attendance %" value={stats.pct} suffix="%" />
         </div>
+        )}
 
         <div className="rounded-2xl border border-border bg-card overflow-hidden">
           <div className="overflow-x-auto max-h-[60vh]">
@@ -80,7 +83,7 @@ export default function StudentProfile() {
               </thead>
               <tbody>
                 {fetching ? (
-                  <tr><td colSpan={3} className="px-3 py-10 text-center text-muted-foreground">Loading…</td></tr>
+                  <TableRowsSkeleton rows={5} cols={3} />
                 ) : records.length === 0 ? (
                   <tr><td colSpan={3} className="px-3 py-10 text-center text-muted-foreground">No attendance records</td></tr>
                 ) : records.map(r => (
