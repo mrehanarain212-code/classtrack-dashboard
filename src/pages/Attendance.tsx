@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Student } from "@/features/students/types";
 import type { AttendanceRecord, AttendanceStatus } from "@/features/attendance/types";
+import { StudentRowSkeleton } from "@/components/Skeletons";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -20,14 +22,15 @@ export default function Attendance() {
   const [q, setQ] = useState("");
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
+  const debouncedQ = useDebounce(q, 200);
 
   useEffect(() => {
     if (!schoolId) return;
     let active = true;
     setFetching(true);
     Promise.all([
-      supabase.from("students").select("*").order("class").order("roll_number"),
-      supabase.from("attendance").select("*").eq("date", date),
+      supabase.from("students").select("id,full_name,roll_number,class,section,photo_url").order("class").order("roll_number"),
+      supabase.from("attendance").select("id,student_id,school_id,date,status,created_at,updated_at").eq("date", date),
     ]).then(([sRes, aRes]) => {
       if (!active) return;
       if (sRes.error) toast.error(sRes.error.message);
@@ -46,14 +49,14 @@ export default function Attendance() {
   }, [schoolId, date]);
 
   const filtered = useMemo(() => {
-    const n = q.trim().toLowerCase();
+    const n = debouncedQ.trim().toLowerCase();
     if (!n) return students;
     return students.filter(s =>
       s.full_name.toLowerCase().includes(n) ||
       s.roll_number.toLowerCase().includes(n) ||
       `${s.class}-${s.section}`.toLowerCase().includes(n)
     );
-  }, [students, q]);
+  }, [students, debouncedQ]);
 
   const counts = useMemo(() => {
     let p = 0, a = 0;
@@ -159,11 +162,11 @@ export default function Attendance() {
         </div>
 
         {fetching ? (
-          <div className="text-center py-10 text-muted-foreground text-sm">Loading…</div>
+          <StudentRowSkeleton count={6} />
         ) : filtered.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground text-sm">No students found</div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 [-webkit-overflow-scrolling:touch]">
             {filtered.map(s => {
               const m = marks[s.id];
               return (

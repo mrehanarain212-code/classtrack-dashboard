@@ -7,6 +7,8 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Student } from "@/features/students/types";
+import { TableRowsSkeleton } from "@/components/Skeletons";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const PAGE_SIZE = 25;
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -38,11 +40,12 @@ export default function Reports() {
   const [page, setPage] = useState(0);
   const [fetching, setFetching] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const debouncedName = useDebounce(nameQ, 300);
 
   // Fetch students once
   useEffect(() => {
     if (!schoolId) return;
-    supabase.from("students").select("*").order("class").order("section").order("roll_number").then(({ data }) => {
+    supabase.from("students").select("id,full_name,roll_number,class,section").order("class").order("section").order("roll_number").then(({ data }) => {
       setStudents((data ?? []) as Student[]);
     });
     supabase.from("profiles").select("id, full_name").then(({ data }) => {
@@ -66,15 +69,15 @@ export default function Reports() {
 
   // Compute filtered student IDs (in-memory: students table is small per school)
   const filteredStudentIds = useMemo(() => {
-    const n = nameQ.trim().toLowerCase();
+    const n = debouncedName.trim().toLowerCase();
     return students
       .filter(s => !classFilter || s.class === classFilter)
       .filter(s => !sectionFilter || s.section === sectionFilter)
       .filter(s => !n || s.full_name.toLowerCase().includes(n) || s.roll_number.toLowerCase().includes(n))
       .map(s => s.id);
-  }, [students, nameQ, classFilter, sectionFilter]);
+  }, [students, debouncedName, classFilter, sectionFilter]);
 
-  const studentsScoped = nameQ || classFilter || sectionFilter;
+  const studentsScoped = debouncedName || classFilter || sectionFilter;
 
   const buildQuery = () => {
     let q = supabase.from("attendance").select("id, date, status, marked_by, student_id", { count: "exact" })
@@ -100,10 +103,10 @@ export default function Reports() {
     });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schoolId, from, to, statusFilter, nameQ, classFilter, sectionFilter, page]);
+  }, [schoolId, from, to, statusFilter, debouncedName, classFilter, sectionFilter, page]);
 
   // Reset page on filter change
-  useEffect(() => { setPage(0); }, [from, to, statusFilter, nameQ, classFilter, sectionFilter]);
+  useEffect(() => { setPage(0); }, [from, to, statusFilter, debouncedName, classFilter, sectionFilter]);
 
   // Summary report (fetch all matching for stats)
   const [summary, setSummary] = useState<{
@@ -147,7 +150,7 @@ export default function Reports() {
     });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schoolId, from, to, nameQ, classFilter, sectionFilter, students.length]);
+  }, [schoolId, from, to, debouncedName, classFilter, sectionFilter, students.length]);
 
   const exportCSV = async () => {
     setExporting(true);
@@ -303,7 +306,7 @@ export default function Reports() {
               </thead>
               <tbody>
                 {fetching ? (
-                  <tr><td colSpan={5} className="px-3 py-10 text-center text-muted-foreground">Loading…</td></tr>
+                  <TableRowsSkeleton rows={6} cols={5} />
                 ) : rows.length === 0 ? (
                   <tr><td colSpan={5} className="px-3 py-10 text-center text-muted-foreground">No records found</td></tr>
                 ) : rows.map(r => {
