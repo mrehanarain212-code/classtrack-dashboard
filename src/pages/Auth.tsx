@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Shield, Users, Heart } from "lucide-react";
 
 const signUpSchema = z.object({
   full_name: z.string().trim().min(2, "Enter your name").max(80),
@@ -95,7 +95,7 @@ export default function Auth() {
           <Tabs defaultValue="signin">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="signin">Sign in</TabsTrigger>
-              <TabsTrigger value="signup">Create school</TabsTrigger>
+              <TabsTrigger value="signup">Sign up</TabsTrigger>
             </TabsList>
             <TabsContent value="signin">
               <form onSubmit={onSignIn} className="space-y-4">
@@ -114,19 +114,31 @@ export default function Auth() {
             </TabsContent>
             <TabsContent value="signup">
               <form onSubmit={onSignUp} className="space-y-4">
-                <div className="grid grid-cols-3 gap-2 p-1 rounded-lg bg-muted">
-                  <button type="button" onClick={() => setSignupMode("create")}
-                    className={`tap-44 rounded-md text-xs font-medium ${signupMode === "create" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
-                    Admin
-                  </button>
-                  <button type="button" onClick={() => setSignupMode("join")}
-                    className={`tap-44 rounded-md text-xs font-medium ${signupMode === "join" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
-                    Teacher
-                  </button>
-                  <button type="button" onClick={() => setSignupMode("parent")}
-                    className={`tap-44 rounded-md text-xs font-medium ${signupMode === "parent" ? "bg-background shadow-sm" : "text-muted-foreground"}`}>
-                    Parent
-                  </button>
+                <div>
+                  <Label className="text-xs text-muted-foreground">I am signing up as</Label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {([
+                      { id: "create", label: "Admin", sub: "Create school", icon: Shield },
+                      { id: "join", label: "Teacher", sub: "Join school", icon: Users },
+                      { id: "parent", label: "Parent", sub: "Track child", icon: Heart },
+                    ] as const).map(opt => {
+                      const Icon = opt.icon;
+                      const active = signupMode === opt.id;
+                      return (
+                        <button key={opt.id} type="button" onClick={() => setSignupMode(opt.id)}
+                          className={`tap-44 rounded-xl border p-2 flex flex-col items-center gap-1 transition ${
+                            active
+                              ? "border-primary bg-primary/10 text-foreground shadow-glow"
+                              : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/50"
+                          }`}
+                          aria-pressed={active}>
+                          <Icon className="h-4 w-4" />
+                          <span className="text-xs font-semibold leading-none">{opt.label}</span>
+                          <span className="text-[10px] leading-none">{opt.sub}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="su-name">Your name</Label>
