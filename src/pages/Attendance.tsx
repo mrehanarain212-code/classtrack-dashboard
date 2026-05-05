@@ -68,15 +68,19 @@ export default function Attendance() {
   const set = (id: string, status: AttendanceStatus) =>
     setMarks(prev => ({ ...prev, [id]: status }));
 
-  const markAllPresent = () => {
-    const next: Record<string, AttendanceStatus> = {};
-    students.forEach(s => { next[s.id] = "Present"; });
+  const markAll = (status: AttendanceStatus) => {
+    const next: Record<string, AttendanceStatus> = { ...marks };
+    (filtered.length ? filtered : students).forEach(s => { next[s.id] = status; });
     setMarks(next);
-    toast.success("All marked present");
+    toast.success(status === "Present" ? "All marked present" : "All marked absent");
+  };
+  const clearMarks = () => {
+    setMarks({});
+    toast.message("Cleared unsaved marks");
   };
 
   const save = async () => {
-    if (!schoolId) return;
+    if (!schoolId || saving) return;
     const entries = Object.entries(marks);
     if (entries.length === 0) { toast.error("Nothing to save"); return; }
     setSaving(true);
@@ -141,9 +145,17 @@ export default function Attendance() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Filter by name, roll, class…" className="pl-9 tap-44" />
           </div>
-          <Button variant="outline" onClick={markAllPresent} disabled={fetching || students.length === 0} className="tap-44">
-            <Check className="h-4 w-4" /> Mark all present
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => markAll("Present")} disabled={fetching || saving || students.length === 0} className="tap-44 flex-1 sm:flex-none">
+              <Check className="h-4 w-4" /> All present
+            </Button>
+            <Button variant="outline" onClick={() => markAll("Absent")} disabled={fetching || saving || students.length === 0} className="tap-44 flex-1 sm:flex-none">
+              <X className="h-4 w-4" /> All absent
+            </Button>
+            <Button variant="ghost" onClick={clearMarks} disabled={fetching || saving || Object.keys(marks).length === 0} className="tap-44">
+              Clear
+            </Button>
+          </div>
         </div>
 
         {fetching ? (
@@ -202,9 +214,9 @@ export default function Attendance() {
           <div className="text-xs text-muted-foreground flex-1">
             {Object.keys(marks).length} of {students.length} marked
           </div>
-          <Button onClick={save} disabled={saving || fetching} className="tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
+          <Button onClick={save} disabled={saving || fetching || Object.keys(marks).length === 0} className="tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save attendance
+            {saving ? "Saving…" : "Save attendance"}
           </Button>
         </div>
       </div>
