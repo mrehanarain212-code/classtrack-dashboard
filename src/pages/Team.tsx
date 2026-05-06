@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, Copy, Trash2, Users } from "lucide-react";
+import { Copy, Trash2, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
+import AppLayout from "@/components/AppLayout";
 
 interface Member {
   id: string;
@@ -64,17 +65,7 @@ export default function Team() {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-3xl px-4 py-3 flex items-center gap-3">
-          <Link to="/"><Button variant="ghost" size="icon" aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button></Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold leading-tight">Team</h1>
-            <p className="text-xs text-muted-foreground truncate">Manage admins and teachers</p>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout title="Team" subtitle="Manage admins and teachers">
       <section className="mx-auto max-w-3xl px-4 py-5 space-y-5">
         <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
           <div className="text-xs text-muted-foreground">School join code</div>
@@ -121,6 +112,6 @@ export default function Team() {
           )}
         </div>
       </section>
-    </main>
+    </AppLayout>
   );
 }
