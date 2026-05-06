@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle, GraduationCap, LogOut } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import AppLayout from "@/components/AppLayout";
 
 interface Child {
   id: string;
@@ -17,7 +17,7 @@ interface Child {
 interface AttRow { date: string; status: string; student_id: string; }
 
 export default function ParentDashboard() {
-  const { session, loading, signOut } = useAuth();
+  const { session, loading } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
   const [att, setAtt] = useState<Record<string, AttRow[]>>({});
   const [fetching, setFetching] = useState(true);
@@ -52,20 +52,7 @@ export default function ParentDashboard() {
   if (!session) return <Navigate to="/auth" replace />;
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-2xl px-4 py-3 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-primary grid place-items-center shadow-glow">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold leading-tight">ClassTrack</h1>
-            <p className="text-xs text-muted-foreground truncate">Parent portal</p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out"><LogOut className="h-4 w-4" /></Button>
-        </div>
-      </header>
-
+    <AppLayout title="Parent portal" subtitle="Your children's attendance">
       <section className="mx-auto max-w-2xl px-4 py-5 space-y-5">
         {fetching ? (
           <div className="text-center py-10 text-muted-foreground text-sm">Loading…</div>
@@ -75,7 +62,7 @@ export default function ParentDashboard() {
           </div>
         ) : children.map(c => <ChildCard key={c.id} child={c} rows={att[c.id] ?? []} />)}
       </section>
-    </main>
+    </AppLayout>
   );
 }
 
