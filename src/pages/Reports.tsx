@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Filter, Loader2 } from "lucide-react";
+import { Download, FileText, Filter, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import type { Student } from "@/features/students/types";
 import { TableRowsSkeleton } from "@/components/Skeletons";
 import { useDebounce } from "@/hooks/useDebounce";
+import AppLayout from "@/components/AppLayout";
+import { generateStudentReport } from "@/lib/studentReport";
 
 const PAGE_SIZE = 25;
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -187,24 +189,20 @@ export default function Reports() {
   if (!session) return <Navigate to="/auth" replace />;
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const downloadStudent = async (id: string) => {
+    try { await generateStudentReport(id); }
+    catch (e: any) { toast.error(e?.message ?? "Failed to generate report"); }
+  };
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
-          <Link to="/"><Button variant="ghost" size="icon" aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button></Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold leading-tight">Reports & History</h1>
-            <p className="text-xs text-muted-foreground truncate">Attendance analytics</p>
-          </div>
+    <AppLayout title="Reports & History" subtitle="Attendance analytics">
+      <section className="mx-auto max-w-6xl px-4 py-5 space-y-5">
+        <div className="flex justify-end">
           <Button onClick={exportCSV} disabled={exporting} size="sm" className="bg-gradient-primary text-primary-foreground hover:opacity-90">
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            CSV
+            Export CSV
           </Button>
         </div>
-      </header>
-
-      <section className="mx-auto max-w-6xl px-4 py-5 space-y-5">
         {/* Filters */}
         <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground"><Filter className="h-3.5 w-3.5" /> Filters</div>
@@ -268,6 +266,9 @@ export default function Reports() {
                     <Link to={`/student/${s.id}`} className="flex-1 truncate hover:underline">{s.name}</Link>
                     <span className="text-xs text-destructive">{s.absent} absent</span>
                     <span className="text-xs text-muted-foreground tabular-nums w-10 text-right">{s.pct}%</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" title="Download report" onClick={() => downloadStudent(s.id)}>
+                      <FileText className="h-3.5 w-3.5" />
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -342,7 +343,7 @@ export default function Reports() {
           </div>
         </div>
       </section>
-    </main>
+    </AppLayout>
   );
 }
 
