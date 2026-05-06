@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
+import { Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import type { Student } from "@/features/students/types";
 import { TableRowsSkeleton, StatGridSkeleton } from "@/components/Skeletons";
+import AppLayout from "@/components/AppLayout";
+import { generateStudentReport } from "@/lib/studentReport";
+import { toast } from "sonner";
 
 type Rec = { id: string; date: string; status: string; marked_by: string | null };
 
@@ -48,20 +51,15 @@ export default function StudentProfile() {
   if (!session) return <Navigate to="/auth" replace />;
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-4xl px-4 py-3 flex items-center gap-3">
-          <Link to="/reports"><Button variant="ghost" size="icon" aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button></Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold leading-tight truncate">{student?.full_name ?? "Student"}</h1>
-            <p className="text-xs text-muted-foreground truncate">
-              {student ? `Roll ${student.roll_number} • Class ${student.class}-${student.section}` : ""}
-            </p>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout title={student?.full_name ?? "Student"} subtitle={student ? `Roll ${student.roll_number} • Class ${student.class}-${student.section}` : ""}>
       <section className="mx-auto max-w-4xl px-4 py-5 space-y-5">
+        {id && (
+          <div className="flex justify-end">
+            <Button size="sm" onClick={async () => { try { await generateStudentReport(id); } catch (e: any) { toast.error(e?.message ?? "Failed"); } }} className="bg-gradient-primary text-primary-foreground hover:opacity-90">
+              <Download className="h-4 w-4" /> Download report
+            </Button>
+          </div>
+        )}
         {fetching ? <StatGridSkeleton /> : (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Stat label="Total days" value={stats.total} />
@@ -104,7 +102,7 @@ export default function StudentProfile() {
           </div>
         </div>
       </section>
-    </main>
+    </AppLayout>
   );
 }
 

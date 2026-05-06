@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { BarChart3, CalendarCheck, GraduationCap, LogOut, Plus, Search, Shield, Users } from "lucide-react";
+import { CalendarCheck, Plus, Search, Users } from "lucide-react";
 import { AlertTriangle, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -13,13 +13,17 @@ import StudentList from "@/features/students/StudentList";
 import type { Student } from "@/features/students/types";
 import { StatGridSkeleton, StudentRowSkeleton } from "@/components/Skeletons";
 import { useDebounce } from "@/hooks/useDebounce";
+import AppLayout from "@/components/AppLayout";
+
+const PAGE_SIZE = 20;
 
 export default function Dashboard() {
-  const { session, schoolId, role, isAdmin, isParent, loading, signOut } = useAuth();
+  const { session, schoolId, role, isAdmin, isParent, loading } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [fetching, setFetching] = useState(true);
   const [q, setQ] = useState("");
   const [classFilter, setClassFilter] = useState("");
+  const [page, setPage] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [toDelete, setToDelete] = useState<Student | null>(null);
@@ -129,32 +133,11 @@ export default function Dashboard() {
   if (!session) return <Navigate to="/auth" replace />;
   if (isParent) return <Navigate to="/parent" replace />;
 
-  return (
-    <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-primary grid place-items-center shadow-glow">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold leading-tight">ClassTrack</h1>
-            <p className="text-xs text-muted-foreground truncate">Student management</p>
-          </div>
-          <Link to="/attendance">
-            <Button variant="ghost" size="icon" aria-label="Attendance"><CalendarCheck className="h-4 w-4" /></Button>
-          </Link>
-          <Link to="/reports">
-            <Button variant="ghost" size="icon" aria-label="Reports"><BarChart3 className="h-4 w-4" /></Button>
-          </Link>
-          {isAdmin && (
-            <Link to="/team">
-              <Button variant="ghost" size="icon" aria-label="Team"><Shield className="h-4 w-4" /></Button>
-            </Link>
-          )}
-          <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out"><LogOut className="h-4 w-4" /></Button>
-        </div>
-      </header>
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paged = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
+  return (
+    <AppLayout title="Dashboard" subtitle="Students & overview">
       <section className="mx-auto max-w-6xl px-4 py-5 space-y-5">
         {role && (
           <div className="text-xs text-muted-foreground">
@@ -227,9 +210,9 @@ export default function Dashboard() {
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name, roll, class…" className="pl-9 tap-44" />
+            <Input value={q} onChange={e => { setQ(e.target.value); setPage(0); }} placeholder="Search by name, roll, class…" className="pl-9 tap-44" />
           </div>
-          <select value={classFilter} onChange={e => setClassFilter(e.target.value)}
+          <select value={classFilter} onChange={e => { setClassFilter(e.target.value); setPage(0); }}
             className="h-10 rounded-md border border-input bg-background px-3 text-sm tap-44">
             <option value="">All classes</option>
             {classes.map(c => <option key={c} value={c}>Class {c}</option>)}
@@ -244,12 +227,23 @@ export default function Dashboard() {
         {fetching ? (
           <StudentRowSkeleton count={5} />
         ) : (
-          <StudentList
-            students={filtered}
-            canManage={isAdmin}
-            onEdit={s => { setEditing(s); setFormOpen(true); }}
-            onDelete={s => setToDelete(s)}
-          />
+          <>
+            <StudentList
+              students={paged}
+              canManage={isAdmin}
+              onEdit={s => { setEditing(s); setFormOpen(true); }}
+              onDelete={s => setToDelete(s)}
+            />
+            {filtered.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between text-xs">
+                <div className="text-muted-foreground">Page {page + 1} / {totalPages} • {filtered.length} students</div>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}>Prev</Button>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>Next</Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -271,7 +265,7 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </main>
+    </AppLayout>
   );
 }
 

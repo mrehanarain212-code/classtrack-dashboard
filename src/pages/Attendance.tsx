@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, Calendar as CalendarIcon, Check, Loader2, Save, Search, X } from "lucide-react";
+import { Calendar as CalendarIcon, Check, Loader2, Save, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import type { Student } from "@/features/students/types";
 import type { AttendanceRecord, AttendanceStatus } from "@/features/attendance/types";
 import { StudentRowSkeleton } from "@/components/Skeletons";
 import { useDebounce } from "@/hooks/useDebounce";
+import AppLayout from "@/components/AppLayout";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -121,17 +122,8 @@ export default function Attendance() {
   if (!session) return <Navigate to="/auth" replace />;
 
   return (
-    <main className="min-h-screen bg-background pb-28">
-      <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
-          <Link to="/"><Button variant="ghost" size="icon" aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button></Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-base font-semibold leading-tight">Attendance</h1>
-            <p className="text-xs text-muted-foreground truncate">Mark daily attendance</p>
-          </div>
-        </div>
-      </header>
-
+    <AppLayout title="Attendance" subtitle="Mark daily attendance">
+      <div className="pb-28">
       <section className="mx-auto max-w-6xl px-4 py-5 space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <Stat label="Present" value={counts.present} tone="success" />
@@ -223,7 +215,8 @@ export default function Attendance() {
           </Button>
         </div>
       </div>
-    </main>
+      </div>
+    </AppLayout>
   );
 }
 
