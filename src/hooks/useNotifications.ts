@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Notification {
   id: string;
   type: string;
+  category: string;
   title: string;
   body: string | null;
   link: string | null;
@@ -20,9 +21,9 @@ export function useNotifications(userId: string | null | undefined) {
     setLoading(true);
     const { data } = await supabase
       .from("notifications")
-      .select("id,type,title,body,link,read_at,created_at")
+      .select("id,type,category,title,body,link,read_at,created_at")
       .order("created_at", { ascending: false })
-      .limit(30);
+      .limit(50);
     setItems((data ?? []) as Notification[]);
     setLoading(false);
   }, [userId]);
