@@ -42,7 +42,7 @@ export default function ParentDashboard() {
         .in("student_id", ids).order("date", { ascending: false });
       if (e3) { toast.error(e3.message); }
       const [{ data: fees }, { data: pays }] = await Promise.all([
-        supabase.from("fees").select("student_id,month,year,total_fee,due_date,status").in("student_id", ids),
+        supabase.from("fees").select("id,student_id,month,year,total_fee,due_date,status").in("student_id", ids),
         supabase.from("payments").select("student_id,fee_id,amount").in("student_id", ids),
       ]);
       const paidByFee: Record<string, number> = {};
