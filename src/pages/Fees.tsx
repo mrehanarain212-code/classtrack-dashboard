@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { AlertTriangle, Download, Plus, Wallet, Trash2 } from "lucide-react";
+import { AlertTriangle, Bell, Download, Plus, Wallet, Trash2 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 
 type Status = "unpaid" | "partial" | "paid";
@@ -206,6 +206,13 @@ function FeeCard({ student, fee, paid, remaining, overdue, payments, canEdit, on
     if (error) toast.error(error.message); else { toast.success("Fee deleted"); onDeleted(); }
   }
 
+  async function sendReminder() {
+    if (!fee) return;
+    const { data, error } = await supabase.rpc("send_fee_reminder", { _fee_id: fee.id });
+    if (error) toast.error(error.message);
+    else toast.success(`Reminder sent to ${data ?? 0} parent(s)`);
+  }
+
   return (
     <div className="rounded-xl border border-border bg-card p-3 sm:p-4 shadow-card">
       <div className="flex items-start justify-between gap-3">
@@ -244,6 +251,11 @@ function FeeCard({ student, fee, paid, remaining, overdue, payments, canEdit, on
                   <Button size="sm" onClick={onPay} disabled={fee.status === "paid"}>
                     <Wallet className="h-4 w-4" />Add payment
                   </Button>
+                  {fee.status !== "paid" && (
+                    <Button variant="outline" size="sm" onClick={sendReminder}>
+                      <Bell className="h-4 w-4" />Remind
+                    </Button>
+                  )}
                   <Button variant="ghost" size="sm" onClick={deleteFee} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </Button>

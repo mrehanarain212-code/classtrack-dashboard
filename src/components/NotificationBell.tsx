@@ -46,7 +46,7 @@ export default function NotificationBell() {
             <div className="px-3 py-8 text-center text-xs text-muted-foreground">No notifications yet</div>
           ) : items.map(n => {
             const inner = (
-              <div className={cn("px-3 py-2.5 border-b border-border last:border-0 hover:bg-muted/40 transition", !n.read_at && "bg-primary/5")}>
+              <div className={cn("px-3 py-2.5 border-b border-border hover:bg-muted/40 transition", !n.read_at && "bg-primary/5")}>
                 <div className="flex items-start gap-2">
                   {!n.read_at && <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />}
                   <div className="flex-1 min-w-0">
@@ -63,6 +63,12 @@ export default function NotificationBell() {
               <button key={n.id} type="button" onClick={() => markRead(n.id)} className="w-full text-left">{inner}</button>
             );
           })}
+        </div>
+        <div className="border-t border-border">
+          <Link to="/notifications" onClick={() => setOpen(false)}
+            className="block text-center text-xs py-2 text-primary hover:bg-muted/40">
+            View all notifications
+          </Link>
         </div>
       </PopoverContent>
     </Popover>

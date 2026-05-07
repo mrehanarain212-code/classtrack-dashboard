@@ -116,9 +116,73 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          delivery_status: string
+          error: string | null
+          id: string
+          notification_id: string | null
+          payload: Json | null
+          provider: string | null
+          provider_message_id: string | null
+          recipient: string | null
+          school_id: string
+          user_id: string | null
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
+          error?: string | null
+          id?: string
+          notification_id?: string | null
+          payload?: Json | null
+          provider?: string | null
+          provider_message_id?: string | null
+          recipient?: string | null
+          school_id: string
+          user_id?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string
+          error?: string | null
+          id?: string
+          notification_id?: string | null
+          payload?: Json | null
+          provider?: string | null
+          provider_message_id?: string | null
+          recipient?: string | null
+          school_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_logs_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
+          category: string
           created_at: string
           id: string
           link: string | null
@@ -130,6 +194,7 @@ export type Database = {
         }
         Insert: {
           body?: string | null
+          category?: string
           created_at?: string
           id?: string
           link?: string | null
@@ -141,6 +206,7 @@ export type Database = {
         }
         Update: {
           body?: string | null
+          category?: string
           created_at?: string
           id?: string
           link?: string | null
@@ -281,6 +347,38 @@ export type Database = {
           },
         ]
       }
+      school_settings: {
+        Row: {
+          absence_threshold: number
+          alerts_enabled: boolean
+          fee_reminder_days: number
+          school_id: string
+          updated_at: string
+        }
+        Insert: {
+          absence_threshold?: number
+          alerts_enabled?: boolean
+          fee_reminder_days?: number
+          school_id: string
+          updated_at?: string
+        }
+        Update: {
+          absence_threshold?: number
+          alerts_enabled?: boolean
+          fee_reminder_days?: number
+          school_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_settings_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: true
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schools: {
         Row: {
           created_at: string
@@ -405,6 +503,7 @@ export type Database = {
           name: string
         }[]
       }
+      send_fee_reminder: { Args: { _fee_id: string }; Returns: number }
       user_school_id: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
