@@ -62,6 +62,60 @@ export type Database = {
           },
         ]
       }
+      fees: {
+        Row: {
+          created_at: string
+          due_date: string
+          id: string
+          month: number
+          school_id: string
+          status: string
+          student_id: string
+          total_fee: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          due_date: string
+          id?: string
+          month: number
+          school_id: string
+          status?: string
+          student_id: string
+          total_fee: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          due_date?: string
+          id?: string
+          month?: number
+          school_id?: string
+          status?: string
+          student_id?: string
+          total_fee?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fees_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fees_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -130,6 +184,67 @@ export type Database = {
           },
           {
             foreignKeyName: "parent_student_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          fee_id: string | null
+          id: string
+          method: string
+          note: string | null
+          payment_date: string
+          recorded_by: string | null
+          school_id: string
+          student_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          fee_id?: string | null
+          id?: string
+          method: string
+          note?: string | null
+          payment_date?: string
+          recorded_by?: string | null
+          school_id: string
+          student_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          fee_id?: string | null
+          id?: string
+          method?: string
+          note?: string | null
+          payment_date?: string
+          recorded_by?: string | null
+          school_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_fee_id_fkey"
+            columns: ["fee_id"]
+            isOneToOne: false
+            referencedRelation: "fees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
