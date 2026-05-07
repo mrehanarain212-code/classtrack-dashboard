@@ -10,6 +10,7 @@ import Team from "./pages/Team.tsx";
 import Reports from "./pages/Reports.tsx";
 import StudentProfile from "./pages/StudentProfile.tsx";
 import ParentDashboard from "./pages/ParentDashboard.tsx";
+import Fees from "./pages/Fees.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/reports" element={<Reports />} />
             <Route path="/student/:id" element={<StudentProfile />} />
             <Route path="/parent" element={<ParentDashboard />} />
+            <Route path="/fees" element={<Fees />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
