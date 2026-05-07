@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, CalendarCheck, GraduationCap, LayoutDashboard, LogOut, Shield, Users, Wallet } from "lucide-react";
+import { BarChart3, Bell, CalendarCheck, GraduationCap, LayoutDashboard, LogOut, Shield, Users, Wallet } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -17,12 +17,14 @@ export default function AppSidebar() {
     ? [
         { title: "My Children", url: "/parent", icon: LayoutDashboard },
         { title: "Fees", url: "/fees", icon: Wallet },
+        { title: "Notifications", url: "/notifications", icon: Bell },
       ]
     : [
         { title: "Dashboard", url: "/", icon: LayoutDashboard },
         { title: "Students", url: "/", icon: Users },
         { title: "Attendance", url: "/attendance", icon: CalendarCheck },
         { title: "Fees", url: "/fees", icon: Wallet },
+        { title: "Notifications", url: "/notifications", icon: Bell },
         ...(isAdmin || isTeacher ? [{ title: "Reports", url: "/reports", icon: BarChart3 }] : []),
         ...(isAdmin ? [{ title: "Team", url: "/team", icon: Shield }] : []),
       ];
