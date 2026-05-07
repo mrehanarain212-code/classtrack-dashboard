@@ -3,9 +3,10 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Progress } from "@/components/ui/progress";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import AppLayout from "@/components/AppLayout";
+import { Link } from "react-router-dom";
 
 interface Child {
   id: string;
@@ -15,11 +16,13 @@ interface Child {
   section: string;
 }
 interface AttRow { date: string; status: string; student_id: string; }
+interface FeeDue { student_id: string; month: number; year: number; total_fee: number; due_date: string; status: string; paid: number; }
 
 export default function ParentDashboard() {
   const { session, loading } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
   const [att, setAtt] = useState<Record<string, AttRow[]>>({});
+  const [feeDues, setFeeDues] = useState<FeeDue[]>([]);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -38,11 +41,21 @@ export default function ParentDashboard() {
         .from("attendance").select("student_id,date,status")
         .in("student_id", ids).order("date", { ascending: false });
       if (e3) { toast.error(e3.message); }
+      const [{ data: fees }, { data: pays }] = await Promise.all([
+        supabase.from("fees").select("student_id,month,year,total_fee,due_date,status").in("student_id", ids),
+        supabase.from("payments").select("student_id,fee_id,amount").in("student_id", ids),
+      ]);
+      const paidByFee: Record<string, number> = {};
+      (pays ?? []).forEach((p: any) => { if (p.fee_id) paidByFee[p.fee_id] = (paidByFee[p.fee_id] ?? 0) + Number(p.amount); });
+      const dues: FeeDue[] = ((fees ?? []) as any[])
+        .filter(f => f.status !== "paid")
+        .map(f => ({ ...f, total_fee: Number(f.total_fee), paid: paidByFee[(f as any).id] ?? 0 }));
       const map: Record<string, AttRow[]> = {};
       (rows ?? []).forEach((r: any) => { (map[r.student_id] ||= []).push(r); });
       if (!active) return;
       setChildren((studs ?? []) as Child[]);
       setAtt(map);
+      setFeeDues(dues);
       setFetching(false);
     })();
     return () => { active = false; };
@@ -60,7 +73,21 @@ export default function ParentDashboard() {
           <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
             No child linked to your account yet. Please contact your school admin.
           </div>
-        ) : children.map(c => <ChildCard key={c.id} child={c} rows={att[c.id] ?? []} />)}
+        ) : (
+          <>
+            {feeDues.length > 0 && (
+              <Link to="/fees" className="block rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-amber-300 hover:bg-amber-500/15 transition">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Wallet className="h-4 w-4" /> Fee due ({feeDues.length})
+                </div>
+                <div className="text-xs mt-1 opacity-90">
+                  Total pending: Rs {feeDues.reduce((s, f) => s + Math.max(0, f.total_fee - f.paid), 0).toLocaleString()}
+                </div>
+              </Link>
+            )}
+            {children.map(c => <ChildCard key={c.id} child={c} rows={att[c.id] ?? []} />)}
+          </>
+        )}
       </section>
     </AppLayout>
   );
