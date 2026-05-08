@@ -65,7 +65,7 @@ export default function Results() {
     const byStudent = new Map<string, { obt: number; tot: number }>();
     results.forEach(r => {
       const cur = byStudent.get(r.student_id) ?? { obt: 0, tot: 0 };
-      cur.obt += r.obt ?? r.obtained_marks; cur.tot += r.total_marks;
+      cur.obt += r.obtained_marks; cur.tot += r.total_marks;
       byStudent.set(r.student_id, cur);
     });
     const arr = students.map(s => {
