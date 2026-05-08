@@ -12,6 +12,10 @@ import StudentProfile from "./pages/StudentProfile.tsx";
 import ParentDashboard from "./pages/ParentDashboard.tsx";
 import Fees from "./pages/Fees.tsx";
 import Notifications from "./pages/Notifications.tsx";
+import Subjects from "./pages/Subjects.tsx";
+import Exams from "./pages/Exams.tsx";
+import Marks from "./pages/Marks.tsx";
+import Results from "./pages/Results.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 
@@ -34,6 +38,10 @@ const App = () => (
             <Route path="/parent" element={<ParentDashboard />} />
             <Route path="/fees" element={<Fees />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/subjects" element={<Subjects />} />
+            <Route path="/exams" element={<Exams />} />
+            <Route path="/marks/:id" element={<Marks />} />
+            <Route path="/results" element={<Results />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
