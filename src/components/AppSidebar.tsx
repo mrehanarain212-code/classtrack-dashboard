@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { BarChart3, Bell, CalendarCheck, GraduationCap, LayoutDashboard, LogOut, Shield, Users, Wallet } from "lucide-react";
+import { BarChart3, Bell, BookOpen, CalendarCheck, ClipboardList, GraduationCap, LayoutDashboard, LogOut, Shield, Trophy, Users, Wallet } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -16,6 +16,7 @@ export default function AppSidebar() {
   const items = isParent
     ? [
         { title: "My Children", url: "/parent", icon: LayoutDashboard },
+        { title: "Results", url: "/results", icon: Trophy },
         { title: "Fees", url: "/fees", icon: Wallet },
         { title: "Notifications", url: "/notifications", icon: Bell },
       ]
@@ -23,6 +24,9 @@ export default function AppSidebar() {
         { title: "Dashboard", url: "/", icon: LayoutDashboard },
         { title: "Students", url: "/", icon: Users },
         { title: "Attendance", url: "/attendance", icon: CalendarCheck },
+        { title: "Subjects", url: "/subjects", icon: BookOpen },
+        { title: "Exams", url: "/exams", icon: ClipboardList },
+        { title: "Results", url: "/results", icon: Trophy },
         { title: "Fees", url: "/fees", icon: Wallet },
         { title: "Notifications", url: "/notifications", icon: Bell },
         ...(isAdmin || isTeacher ? [{ title: "Reports", url: "/reports", icon: BarChart3 }] : []),
