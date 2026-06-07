@@ -1,6 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { calcGrade } from "./grading";
 
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 export async function generateReportCard(studentId: string, examId: string) {
   const [{ data: student }, { data: school }, { data: exam }, { data: results }, { data: subjects }, { data: att }] = await Promise.all([
     supabase.from("students").select("full_name,roll_number,class,section,parent_name").eq("id", studentId).maybeSingle(),
@@ -33,7 +36,7 @@ export async function generateReportCard(studentId: string, examId: string) {
 
   const gradeColor = (g: string) => g === "A" ? "#10b981" : g === "B" ? "#0ea5e9" : g === "C" ? "#f59e0b" : g === "D" ? "#fb923c" : "#ef4444";
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Report Card - ${student.full_name}</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Report Card - ${esc(student.full_name)}</title>
 <style>
 body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:32px;color:#0f172a;background:#fff}
 .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
@@ -50,15 +53,15 @@ th{background:#f8fafc;font-weight:600}
 .stat .v{font-size:20px;font-weight:700;margin-top:4px}
 @media print{.noprint{display:none}}
 </style></head><body>
-<div class="brand"><div class="logo">CT</div><div><div style="font-weight:600">${school?.name ?? "ClassTrack"}</div><div class="muted">Report Card • ${exam.exam_type}</div></div></div>
+<div class="brand"><div class="logo">CT</div><div><div style="font-weight:600">${esc(school?.name ?? "ClassTrack")}</div><div class="muted">Report Card • ${esc(exam.exam_type)}</div></div></div>
 <div class="row">
   <div>
-    <h1>${student.full_name}</h1>
-    <div class="muted">Roll ${student.roll_number} • Class ${student.class}-${student.section}${student.parent_name ? ` • Parent: ${student.parent_name}` : ""}</div>
+    <h1>${esc(student.full_name)}</h1>
+    <div class="muted">Roll ${esc(student.roll_number)} • Class ${esc(student.class)}-${esc(student.section)}${student.parent_name ? ` • Parent: ${esc(student.parent_name)}` : ""}</div>
   </div>
   <div style="text-align:right">
-    <div style="font-weight:600">${exam.title}</div>
-    <div class="muted">${exam.start_date} → ${exam.end_date}</div>
+    <div style="font-weight:600">${esc(exam.title)}</div>
+    <div class="muted">${esc(exam.start_date)} → ${esc(exam.end_date)}</div>
   </div>
 </div>
 
@@ -67,10 +70,10 @@ th{background:#f8fafc;font-weight:600}
     <thead><tr><th>Subject</th><th>Code</th><th>Obtained</th><th>Total</th><th>%</th><th>Grade</th><th>Remarks</th></tr></thead>
     <tbody>
       ${rows.length ? rows.map(r => `<tr>
-        <td>${r.subject}</td><td>${r.code}</td>
+        <td>${esc(r.subject)}</td><td>${esc(r.code)}</td>
         <td>${r.obt}</td><td>${r.tot}</td><td>${r.pct.toFixed(1)}%</td>
-        <td><span class="grade" style="background:${gradeColor(r.grade)}">${r.grade}</span></td>
-        <td>${r.remarks}</td>
+        <td><span class="grade" style="background:${gradeColor(r.grade)}">${esc(r.grade)}</span></td>
+        <td>${esc(r.remarks)}</td>
       </tr>`).join("") : `<tr><td colspan="7" style="text-align:center;color:#64748b">No marks recorded</td></tr>`}
     </tbody>
   </table>
