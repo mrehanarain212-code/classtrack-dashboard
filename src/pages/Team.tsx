@@ -26,7 +26,7 @@ export default function Team() {
     Promise.all([
       supabase.from("profiles").select("id, full_name").eq("school_id", schoolId),
       supabase.from("user_roles").select("user_id, role"),
-      supabase.rpc("get_my_school_join_code"),
+      (supabase.rpc as any)("get_my_school_join_code"),
     ]).then(([p, r, s]) => {
       if (!active) return;
       if (p.error) toast.error(p.error.message);
