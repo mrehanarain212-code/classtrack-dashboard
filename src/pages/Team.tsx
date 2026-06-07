@@ -26,7 +26,7 @@ export default function Team() {
     Promise.all([
       supabase.from("profiles").select("id, full_name").eq("school_id", schoolId),
       supabase.from("user_roles").select("user_id, role"),
-      supabase.from("schools").select("join_code").eq("id", schoolId).maybeSingle(),
+      (supabase.rpc as any)("get_my_school_join_code"),
     ]).then(([p, r, s]) => {
       if (!active) return;
       if (p.error) toast.error(p.error.message);
@@ -40,7 +40,7 @@ export default function Team() {
       }));
       list.sort((a, b) => (a.role === b.role ? 0 : a.role === "admin" ? -1 : 1));
       setMembers(list);
-      setCode((s.data as any)?.join_code ?? "");
+      setCode((s.data as string) ?? "");
       setFetching(false);
     });
     return () => { active = false; };

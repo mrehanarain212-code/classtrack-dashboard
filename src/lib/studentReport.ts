@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
+const esc = (s: unknown) =>
+  String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 export async function generateStudentReport(studentId: string) {
   const [{ data: student }, { data: school }, { data: rows }] = await Promise.all([
     supabase.from("students").select("full_name,roll_number,class,section,parent_name,parent_contact").eq("id", studentId).maybeSingle(),
@@ -34,7 +37,7 @@ export async function generateStudentReport(studentId: string) {
     tableRows.push(`<tr>${cellRows.slice(i, i + 5).join("")}</tr>`);
   }
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Report - ${student.full_name}</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Report - ${esc(student.full_name)}</title>
 <style>
   body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:32px;color:#0f172a;background:#fff}
   h1{margin:0 0 4px;font-size:22px}
@@ -48,9 +51,9 @@ export async function generateStudentReport(studentId: string) {
   .logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
   @media print{.noprint{display:none}}
 </style></head><body>
-  <div class="brand"><div class="logo">CT</div><div><div style="font-weight:600">${school?.name ?? "ClassTrack"}</div><div class="muted">Student Attendance Report</div></div></div>
-  <h1>${student.full_name}</h1>
-  <div class="muted">Roll ${student.roll_number} • Class ${student.class}-${student.section}${student.parent_name ? ` • Parent: ${student.parent_name}` : ""}${student.parent_contact ? ` (${student.parent_contact})` : ""}</div>
+  <div class="brand"><div class="logo">CT</div><div><div style="font-weight:600">${esc(school?.name ?? "ClassTrack")}</div><div class="muted">Student Attendance Report</div></div></div>
+  <h1>${esc(student.full_name)}</h1>
+  <div class="muted">Roll ${esc(student.roll_number)} • Class ${esc(student.class)}-${esc(student.section)}${student.parent_name ? ` • Parent: ${esc(student.parent_name)}` : ""}${student.parent_contact ? ` (${esc(student.parent_contact)})` : ""}</div>
   <div class="grid">
     <div class="stat"><div class="muted">Attendance</div><div class="v" style="color:${pct >= 75 ? "#10b981" : "#ef4444"}">${pct}%</div></div>
     <div class="stat"><div class="muted">Days marked</div><div class="v">${total}</div></div>
