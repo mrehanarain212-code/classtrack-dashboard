@@ -32,7 +32,7 @@ export function useNotifications(userId: string | null | undefined) {
     if (!userId) return;
     refresh();
     const channel = supabase
-      .channel(`notifications:${userId}`)
+      .channel(`notifications:${userId}:${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
         (payload) => setItems(prev => [payload.new as Notification, ...prev].slice(0, 30)))
