@@ -70,7 +70,8 @@ export default function Marks() {
     if (!rows.length) return toast.error("Nothing to save");
     setSaving(true);
     const payload = rows.map(r => ({
-      id: r.id, exam_id: id, student_id: r.student_id, subject_id: subjectId,
+      ...(r.id ? { id: r.id } : {}),
+      exam_id: id, student_id: r.student_id, subject_id: subjectId,
       obtained_marks: Number(r.obtained_marks), total_marks: Number(r.total_marks),
       remarks: r.remarks ?? null,
     }));
