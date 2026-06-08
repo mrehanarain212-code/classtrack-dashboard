@@ -8,60 +8,53 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* ClassTrack — premium dark theme (single mode) */
-    --background: 224 24% 6%;
-    --foreground: 210 40% 98%;
+    /* ClassTrack — Cloud White (polished light) */
+    --background: 210 20% 98%;        /* #fafbfc */
+    --foreground: 222 47% 11%;        /* slate-900 */
 
-    --card: 224 22% 9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 224 22% 9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 199 89% 55%;
-    --primary-foreground: 224 30% 6%;
-    --primary-glow: 190 95% 65%;
+    --primary: 199 89% 48%;           /* sky-500/600 */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 199 95% 65%;
 
-    --secondary: 224 18% 14%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 214 32% 95%;         /* slate-100 */
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 224 18% 12%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 214 32% 96%;
+    --muted-foreground: 215 16% 47%;  /* slate-500 */
 
-    --accent: 199 89% 55%;
-    --accent-foreground: 224 30% 6%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
 
-    --success: 152 65% 50%;
-    --warning: 38 92% 60%;
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --success: 152 65% 40%;
+    --warning: 38 92% 50%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 224 18% 16%;
-    --input: 224 18% 14%;
-    --ring: 199 89% 55%;
+    --border: 214 32% 91%;            /* slate-200 */
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
 
-    --radius: 0.85rem;
+    --radius: 1rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(199 89% 55%), hsl(190 95% 65%));
-    --gradient-surface: linear-gradient(180deg, hsl(224 22% 10%), hsl(224 24% 7%));
-    --shadow-glow: 0 10px 40px -10px hsl(199 89% 55% / 0.35);
-    --shadow-card: 0 6px 24px -8px hsl(224 50% 2% / 0.6);
+    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(199 95% 65%));
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
+    --shadow-glow: 0 20px 40px -16px hsl(199 89% 48% / 0.35);
+    --shadow-card: 0 1px 2px hsl(222 47% 11% / 0.04), 0 8px 24px -12px hsl(222 47% 11% / 0.08);
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 215 16% 47%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 32% 95%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 199 89% 48%;
   }
 }
 
@@ -72,10 +65,16 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: 'Epilogue', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     font-feature-settings: "cv02","cv03","cv04","cv11";
   }
 
-  html { color-scheme: dark; }
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Urbanist', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  html { color-scheme: light; }
 }
 
 @layer utilities {
