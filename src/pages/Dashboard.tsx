@@ -138,14 +138,14 @@ export default function Dashboard() {
 
   return (
     <AppLayout title="Dashboard" subtitle="Students & overview">
-      <section className="mx-auto max-w-6xl px-4 py-5 space-y-5">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         {role && (
           <div className="text-xs text-muted-foreground">
             Signed in as <span className="font-medium text-foreground capitalize">{role}</span>
           </div>
         )}
         {fetching ? <StatGridSkeleton /> : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <Stat label="Students" value={students.length} icon={<Users className="h-4 w-4" />} />
             <Stat label="Present" value={todayStats.present} />
             <Stat label="Absent" value={todayStats.absent} />
@@ -160,17 +160,23 @@ export default function Dashboard() {
         </div>
 
         <Link to="/attendance" className="block">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-card flex items-center gap-3 hover:bg-muted/30 transition">
-            <div className="h-10 w-10 rounded-xl bg-gradient-primary grid place-items-center">
-              <CalendarCheck className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium">Mark attendance</div>
-              <div className="text-xs text-muted-foreground">
-                {todayStats.present} present • {todayStats.absent} absent
+          <div className="relative overflow-hidden rounded-3xl bg-primary p-6 sm:p-8 shadow-glow group">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 grid place-items-center shrink-0">
+                  <CalendarCheck className="h-7 w-7 sm:h-8 sm:w-8 text-white" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-white truncate">Mark attendance</h2>
+                  <p className="text-sm text-white/80 truncate">{todayStats.present} present • {todayStats.absent} absent</p>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">{attendancePct}%</div>
+                <div className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">Today</div>
               </div>
             </div>
-            <div className="text-sm font-semibold">{attendancePct}%</div>
           </div>
         </Link>
 
@@ -270,8 +276,10 @@ export default function Dashboard() {
 }
 
 const Stat = ({ label, value, icon, suffix }: { label: string; value: number; icon?: React.ReactNode; suffix?: string }) => (
-  <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}{label}</div>
-    <div className="mt-1 text-2xl font-semibold tracking-tight">{value}{suffix}</div>
+  <div className="rounded-3xl border border-border bg-card p-5 shadow-card hover:border-primary/30 transition-colors">
+    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">
+      {icon}{label}
+    </div>
+    <div className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground">{value}{suffix}</div>
   </div>
 );

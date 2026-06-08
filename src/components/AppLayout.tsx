@@ -15,11 +15,11 @@ export default function AppLayout({ children, title, subtitle }: { children: Rea
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="sticky top-0 z-10 h-14 flex items-center gap-2 border-b border-border bg-background/80 backdrop-blur px-3">
+          <header className="sticky top-0 z-10 h-16 flex items-center gap-3 border-b border-border bg-background/80 backdrop-blur-xl px-4 sm:px-6">
             <SidebarTrigger />
             <div className="flex-1 min-w-0">
-              {title && <div className="text-sm font-semibold truncate">{title}</div>}
-              {subtitle && <div className="text-[11px] text-muted-foreground truncate">{subtitle}</div>}
+              {title && <div className="font-display text-lg font-bold tracking-tight truncate">{title}</div>}
+              {subtitle && <div className="text-xs text-muted-foreground truncate">{subtitle}</div>}
             </div>
             <NotificationBell />
           </header>

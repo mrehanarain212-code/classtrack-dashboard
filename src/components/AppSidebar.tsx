@@ -36,14 +36,14 @@ export default function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="h-8 w-8 rounded-lg bg-gradient-primary grid place-items-center shadow-glow shrink-0">
-            <GraduationCap className="h-4 w-4 text-primary-foreground" />
+        <div className="flex items-center gap-3 px-2 py-3">
+          <div className="h-10 w-10 rounded-xl bg-primary grid place-items-center shadow-glow shrink-0">
+            <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="text-sm font-semibold leading-tight">ClassTrack</div>
-              <div className="text-[10px] text-muted-foreground capitalize truncate">{role ?? "user"}</div>
+              <div className="font-display text-base font-bold tracking-tight leading-tight">ClassTrack</div>
+              <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest truncate">{role ?? "Admin"} Portal</div>
             </div>
           )}
         </div>
