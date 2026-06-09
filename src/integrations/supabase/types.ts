@@ -62,6 +62,54 @@ export type Database = {
           },
         ]
       }
+      attendance_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          id: string
+          resolved_at: string | null
+          school_id: string
+          status: string
+          streak_end_date: string
+          streak_length: number
+          streak_start_date: string
+          student_id: string
+          threshold: number
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          id?: string
+          resolved_at?: string | null
+          school_id: string
+          status?: string
+          streak_end_date: string
+          streak_length: number
+          streak_start_date: string
+          student_id: string
+          threshold: number
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          id?: string
+          resolved_at?: string | null
+          school_id?: string
+          status?: string
+          streak_end_date?: string
+          streak_length?: number
+          streak_start_date?: string
+          student_id?: string
+          threshold?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exams: {
         Row: {
           class: string
