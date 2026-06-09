@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { CalendarCheck, Plus, Search, Users } from "lucide-react";
-import { AlertTriangle, TrendingDown } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [toDelete, setToDelete] = useState<Student | null>(null);
   const [todayStats, setTodayStats] = useState<{ present: number; absent: number }>({ present: 0, absent: 0 });
   const [statsDate, setStatsDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  const [alerts, setAlerts] = useState<{ student_id: string; name: string; roll: string; klass: string; pct: number; absentStreak: number; totalDays: number }[]>([]);
+  const [alerts, setAlerts] = useState<{ id: string; student_id: string; name: string; roll: string; klass: string; absentStreak: number; threshold: number; streakStart: string }[]>([]);
   const debouncedQ = useDebounce(q, 250);
 
   useEffect(() => {
@@ -63,30 +63,44 @@ export default function Dashboard() {
   useEffect(() => {
     if (!schoolId || students.length === 0) { setAlerts([]); return; }
     let active = true;
-    const since = new Date(); since.setDate(since.getDate() - 29);
-    const sinceISO = since.toISOString().slice(0, 10);
-    supabase.from("attendance").select("student_id,date,status").gte("date", sinceISO)
-      .order("date", { ascending: false }).then(({ data }) => {
+    (supabase as any)
+      .from("attendance_alerts")
+      .select("id,student_id,streak_length,threshold,streak_start_date,status")
+      .eq("status", "active")
+      .order("streak_length", { ascending: false })
+      .then(({ data }: any) => {
         if (!active || !data) return;
-        const byStudent: Record<string, { date: string; status: string }[]> = {};
-        (data as any[]).forEach(r => { (byStudent[r.student_id] ||= []).push(r); });
-        const out: typeof alerts = [];
-        students.forEach(s => {
-          const rows = byStudent[s.id] ?? [];
-          if (!rows.length) return;
-          const present = rows.filter(r => r.status === "Present").length;
-          const pct = Math.round((present / rows.length) * 100);
-          let streak = 0;
-          for (const r of rows) { if (r.status === "Absent") streak++; else break; }
-          if (streak >= 3 || pct < 75) {
-            out.push({ student_id: s.id, name: s.full_name, roll: s.roll_number, klass: `${s.class}-${s.section}`, pct, absentStreak: streak, totalDays: rows.length });
-          }
-        });
-        out.sort((a, b) => b.absentStreak - a.absentStreak || a.pct - b.pct);
+        const byId: Record<string, Student> = {};
+        students.forEach(s => { byId[s.id] = s; });
+        const out = (data as any[])
+          .filter(r => byId[r.student_id])
+          .map(r => {
+            const s = byId[r.student_id];
+            return {
+              id: r.id,
+              student_id: r.student_id,
+              name: s.full_name,
+              roll: s.roll_number,
+              klass: `${s.class}-${s.section}`,
+              absentStreak: r.streak_length,
+              threshold: r.threshold,
+              streakStart: r.streak_start_date,
+            };
+          });
         setAlerts(out);
       });
     return () => { active = false; };
   }, [schoolId, students]);
+
+  const acknowledgeAlert = async (id: string) => {
+    const prev = alerts;
+    setAlerts(prev.filter(a => a.id !== id));
+    const { error } = await (supabase as any)
+      .from("attendance_alerts")
+      .update({ status: "acknowledged", acknowledged_at: new Date().toISOString(), acknowledged_by: session?.user?.id })
+      .eq("id", id);
+    if (error) { setAlerts(prev); toast.error(error.message); }
+  };
 
   const classes = useMemo(() => Array.from(new Set(students.map(s => s.class))).sort(), [students]);
 
@@ -194,16 +208,17 @@ export default function Dashboard() {
                     <div className="truncate font-medium">{a.name}</div>
                     <div className="text-[11px] text-muted-foreground truncate">Class {a.klass} • Roll {a.roll}</div>
                   </Link>
-                  {a.absentStreak >= 3 && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-destructive/15 text-destructive px-2 py-0.5 text-[11px] font-medium">
-                      <AlertTriangle className="h-3 w-3" /> {a.absentStreak}d absent
-                    </span>
-                  )}
-                  {a.pct < 75 && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 text-amber-400 px-2 py-0.5 text-[11px] font-medium">
-                      <TrendingDown className="h-3 w-3" /> {a.pct}%
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 rounded-md bg-destructive/15 text-destructive px-2 py-0.5 text-[11px] font-medium">
+                    <AlertTriangle className="h-3 w-3" /> {a.absentStreak}d absent
+                  </span>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline">≥ {a.threshold}</span>
+                  <button
+                    type="button"
+                    onClick={() => acknowledgeAlert(a.id)}
+                    className="text-[11px] font-medium rounded-md border border-border px-2 py-0.5 hover:bg-muted"
+                  >
+                    Acknowledge
+                  </button>
                 </li>
               ))}
             </ul>
