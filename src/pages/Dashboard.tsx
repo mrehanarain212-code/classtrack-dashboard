@@ -208,16 +208,17 @@ export default function Dashboard() {
                     <div className="truncate font-medium">{a.name}</div>
                     <div className="text-[11px] text-muted-foreground truncate">Class {a.klass} • Roll {a.roll}</div>
                   </Link>
-                  {a.absentStreak >= 3 && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-destructive/15 text-destructive px-2 py-0.5 text-[11px] font-medium">
-                      <AlertTriangle className="h-3 w-3" /> {a.absentStreak}d absent
-                    </span>
-                  )}
-                  {a.pct < 75 && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 text-amber-400 px-2 py-0.5 text-[11px] font-medium">
-                      <TrendingDown className="h-3 w-3" /> {a.pct}%
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 rounded-md bg-destructive/15 text-destructive px-2 py-0.5 text-[11px] font-medium">
+                    <AlertTriangle className="h-3 w-3" /> {a.absentStreak}d absent
+                  </span>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline">≥ {a.threshold}</span>
+                  <button
+                    type="button"
+                    onClick={() => acknowledgeAlert(a.id)}
+                    className="text-[11px] font-medium rounded-md border border-border px-2 py-0.5 hover:bg-muted"
+                  >
+                    Acknowledge
+                  </button>
                 </li>
               ))}
             </ul>
