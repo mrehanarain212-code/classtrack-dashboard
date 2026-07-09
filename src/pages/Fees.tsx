@@ -141,7 +141,12 @@ export default function Fees() {
           <div className="text-center py-10 text-sm text-muted-foreground">Loading…</div>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            No students found.
+            <p className="mb-3">No fees found for this month.</p>
+            {isAdmin && (
+              <Button size="sm" onClick={() => setCreateOpen(true)}>
+                <Plus className="h-4 w-4" />Create fee record
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-2">
