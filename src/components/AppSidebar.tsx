@@ -22,14 +22,14 @@ export default function AppSidebar() {
       ]
     : [
         { title: "Dashboard", url: "/", icon: LayoutDashboard },
-        { title: "Students", url: "/", icon: Users },
+        { title: "Students", url: "/students", icon: Users },
         { title: "Attendance", url: "/attendance", icon: CalendarCheck },
+        ...(isAdmin || isTeacher ? [{ title: "Reports", url: "/reports", icon: BarChart3 }] : []),
         { title: "Subjects", url: "/subjects", icon: BookOpen },
         { title: "Exams", url: "/exams", icon: ClipboardList },
         { title: "Results", url: "/results", icon: Trophy },
         { title: "Fees", url: "/fees", icon: Wallet },
         { title: "Notifications", url: "/notifications", icon: Bell },
-        ...(isAdmin || isTeacher ? [{ title: "Reports", url: "/reports", icon: BarChart3 }] : []),
         ...(isAdmin ? [{ title: "Team", url: "/team", icon: Shield }] : []),
       ];
 
