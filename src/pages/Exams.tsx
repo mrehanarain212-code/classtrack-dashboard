@@ -59,7 +59,14 @@ export default function Exams() {
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
             <ClipboardList className="h-8 w-8 mx-auto mb-2 opacity-60" />
-            No exams yet.
+            <p className="mb-3">No exams scheduled yet.</p>
+            {isAdmin ? (
+              <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }}>
+                <Plus className="h-4 w-4" />Create your first exam
+              </Button>
+            ) : (
+              <p className="text-xs">Ask an admin to schedule an exam.</p>
+            )}
           </div>
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
