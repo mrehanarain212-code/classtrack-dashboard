@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { calcGrade, gradeColor } from "@/lib/grading";
 import { generateReportCard } from "@/lib/reportCard";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface Exam { id: string; title: string; class: string; exam_type: string; }
 interface Student { id: string; full_name: string; roll_number: string; class: string; section: string; }
@@ -18,6 +19,7 @@ interface Result { student_id: string; subject_id: string; obtained_marks: numbe
 
 export default function Results() {
   const { isParent, schoolId } = useAuth();
+  const nav = useNavigate();
   const [exams, setExams] = useState<Exam[]>([]);
   const [examId, setExamId] = useState<string>("");
   const [students, setStudents] = useState<Student[]>([]);
@@ -161,7 +163,14 @@ export default function Results() {
           <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            No results yet. Add subjects, then enter marks for the exam.
+            <FileText className="h-8 w-8 mx-auto mb-2 opacity-60" />
+            <p className="mb-3">No results yet. Add subjects, then enter marks for the exam.</p>
+            {!isParent && (
+              <div className="flex gap-2 justify-center">
+                <Button size="sm" variant="outline" onClick={() => nav("/subjects")}>Manage subjects</Button>
+                {examId && <Button size="sm" onClick={() => nav(`/marks/${examId}`)}>Enter marks</Button>}
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-2">
