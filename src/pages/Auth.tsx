@@ -36,6 +36,23 @@ export default function Auth() {
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
   const [signupMode, setSignupMode] = useState<"create" | "join" | "parent">("create");
+  const [signInErrors, setSignInErrors] = useState<Record<string, string>>({});
+  const [signUpErrors, setSignUpErrors] = useState<Record<string, string>>({});
+  const [signInValues, setSignInValues] = useState({ email: "", password: "" });
+  const [signUpValues, setSignUpValues] = useState({
+    full_name: "", school_name: "", school_code: "", student_roll: "", email: "", password: "",
+  });
+
+  const signInValid = signInValues.email.trim() !== "" && signInValues.password.length > 0;
+  const signUpValid = (() => {
+    if (signUpValues.full_name.trim().length < 2) return false;
+    if (!/^\S+@\S+\.\S+$/.test(signUpValues.email.trim())) return false;
+    if (signUpValues.password.length < 8) return false;
+    if (signupMode === "create" && !signUpValues.school_name.trim()) return false;
+    if (signupMode === "join" && !signUpValues.school_code.trim()) return false;
+    if (signupMode === "parent" && (!signUpValues.school_code.trim() || !signUpValues.student_roll.trim())) return false;
+    return true;
+  })();
 
   if (!loading && session) return <Navigate to="/" replace />;
 
@@ -43,7 +60,14 @@ export default function Auth() {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const parsed = signUpSchema.safeParse({ ...Object.fromEntries(fd), mode: signupMode });
-    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      parsed.error.issues.forEach(i => { errs[String(i.path[0] ?? "form")] = i.message; });
+      setSignUpErrors(errs);
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    setSignUpErrors({});
     setBusy(true);
     const { error } = await supabase.auth.signUp({
       email: parsed.data.email,
@@ -72,7 +96,14 @@ export default function Auth() {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const parsed = signInSchema.safeParse(Object.fromEntries(fd));
-    if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
+    if (!parsed.success) {
+      const errs: Record<string, string> = {};
+      parsed.error.issues.forEach(i => { errs[String(i.path[0] ?? "form")] = i.message; });
+      setSignInErrors(errs);
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    setSignInErrors({});
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email: parsed.data.email, password: parsed.data.password });
     setBusy(false);
@@ -101,13 +132,21 @@ export default function Auth() {
               <form onSubmit={onSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="si-email">Email</Label>
-                  <Input id="si-email" name="email" type="email" required className="tap-44" />
+                  <Input id="si-email" name="email" type="email" required className="tap-44"
+                    value={signInValues.email}
+                    onChange={e => setSignInValues(v => ({ ...v, email: e.target.value }))}
+                    aria-invalid={!!signInErrors.email} />
+                  {signInErrors.email && <p className="text-xs text-destructive">{signInErrors.email}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="si-pw">Password</Label>
-                  <Input id="si-pw" name="password" type="password" required className="tap-44" />
+                  <Input id="si-pw" name="password" type="password" required className="tap-44"
+                    value={signInValues.password}
+                    onChange={e => setSignInValues(v => ({ ...v, password: e.target.value }))}
+                    aria-invalid={!!signInErrors.password} />
+                  {signInErrors.password && <p className="text-xs text-destructive">{signInErrors.password}</p>}
                 </div>
-                <Button type="submit" disabled={busy} className="w-full tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
+                <Button type="submit" disabled={busy || !signInValid} className="w-full tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
                   {busy ? "Signing in…" : "Sign in"}
                 </Button>
               </form>
@@ -142,41 +181,73 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="su-name">Your name</Label>
-                  <Input id="su-name" name="full_name" required className="tap-44" />
+                  <Input id="su-name" name="full_name" required className="tap-44"
+                    value={signUpValues.full_name}
+                    onChange={e => setSignUpValues(v => ({ ...v, full_name: e.target.value }))}
+                    aria-invalid={!!signUpErrors.full_name} />
+                  {signUpErrors.full_name && <p className="text-xs text-destructive">{signUpErrors.full_name}</p>}
                 </div>
                 {signupMode === "create" ? (
                   <div className="space-y-2">
                     <Label htmlFor="su-school">School name</Label>
-                    <Input id="su-school" name="school_name" required className="tap-44" />
+                    <Input id="su-school" name="school_name" required className="tap-44"
+                      value={signUpValues.school_name}
+                      onChange={e => setSignUpValues(v => ({ ...v, school_name: e.target.value }))}
+                      aria-invalid={!!signUpErrors.school_name} />
+                    {signUpErrors.school_name && <p className="text-xs text-destructive">{signUpErrors.school_name}</p>}
                   </div>
                 ) : signupMode === "join" ? (
                   <div className="space-y-2">
                     <Label htmlFor="su-code">School join code</Label>
-                    <Input id="su-code" name="school_code" required className="tap-44 uppercase" placeholder="e.g. AB12CD" />
+                    <Input id="su-code" name="school_code" required className="tap-44 uppercase" placeholder="e.g. AB12CD"
+                      value={signUpValues.school_code}
+                      onChange={e => setSignUpValues(v => ({ ...v, school_code: e.target.value }))}
+                      aria-invalid={!!signUpErrors.school_code} />
+                    {signUpErrors.school_code && <p className="text-xs text-destructive">{signUpErrors.school_code}</p>}
                     <p className="text-[11px] text-muted-foreground">Ask your school admin for the 6-character code.</p>
                   </div>
                 ) : (
                   <>
                     <div className="space-y-2">
                       <Label htmlFor="su-code">School join code</Label>
-                      <Input id="su-code" name="school_code" required className="tap-44 uppercase" placeholder="e.g. AB12CD" />
+                      <Input id="su-code" name="school_code" required className="tap-44 uppercase" placeholder="e.g. AB12CD"
+                        value={signUpValues.school_code}
+                        onChange={e => setSignUpValues(v => ({ ...v, school_code: e.target.value }))}
+                        aria-invalid={!!signUpErrors.school_code} />
+                      {signUpErrors.school_code && <p className="text-xs text-destructive">{signUpErrors.school_code}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="su-roll">Your child's roll number</Label>
-                      <Input id="su-roll" name="student_roll" required className="tap-44" />
+                      <Input id="su-roll" name="student_roll" required className="tap-44"
+                        value={signUpValues.student_roll}
+                        onChange={e => setSignUpValues(v => ({ ...v, student_roll: e.target.value }))}
+                        aria-invalid={!!signUpErrors.student_roll} />
+                      {signUpErrors.student_roll && <p className="text-xs text-destructive">{signUpErrors.student_roll}</p>}
                       <p className="text-[11px] text-muted-foreground">We'll link your account to this student.</p>
                     </div>
                   </>
                 )}
                 <div className="space-y-2">
                   <Label htmlFor="su-email">Email</Label>
-                  <Input id="su-email" name="email" type="email" required className="tap-44" />
+                  <Input id="su-email" name="email" type="email" required className="tap-44"
+                    value={signUpValues.email}
+                    onChange={e => setSignUpValues(v => ({ ...v, email: e.target.value }))}
+                    aria-invalid={!!signUpErrors.email} />
+                  {signUpErrors.email && <p className="text-xs text-destructive">{signUpErrors.email}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="su-pw">Password</Label>
-                  <Input id="su-pw" name="password" type="password" required minLength={8} className="tap-44" />
+                  <Input id="su-pw" name="password" type="password" required minLength={8} className="tap-44"
+                    value={signUpValues.password}
+                    onChange={e => setSignUpValues(v => ({ ...v, password: e.target.value }))}
+                    aria-invalid={!!signUpErrors.password} />
+                  {signUpErrors.password ? (
+                    <p className="text-xs text-destructive">{signUpErrors.password}</p>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">Minimum 8 characters.</p>
+                  )}
                 </div>
-                <Button type="submit" disabled={busy} className="w-full tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
+                <Button type="submit" disabled={busy || !signUpValid} className="w-full tap-44 bg-gradient-primary text-primary-foreground hover:opacity-90">
                   {busy ? "Creating…" : signupMode === "create" ? "Create school" : signupMode === "parent" ? "Create parent account" : "Join as teacher"}
                 </Button>
               </form>
