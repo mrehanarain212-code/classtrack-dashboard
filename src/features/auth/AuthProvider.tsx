@@ -29,10 +29,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(s);
       if (!s) { setSchoolId(null); setRole(null); }
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn("Auth session error:", error.message);
+          supabase.auth.signOut().catch(() => {});
+          setSession(null);
+        } else {
+          setSession(data.session);
+        }
+      })
+      .catch((e) => {
+        console.warn("Failed to load auth session:", e);
+        setSession(null);
+      })
+      .finally(() => setLoading(false));
     return () => sub.subscription.unsubscribe();
   }, []);
 
