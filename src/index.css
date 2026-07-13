@@ -84,3 +84,7 @@ All colors MUST be HSL.
   .shadow-card { box-shadow: var(--shadow-card); }
   .tap-44 { min-height: 44px; min-width: 44px; }
 }
+
+#lovable-badge {
+  display: none !important;
+}
